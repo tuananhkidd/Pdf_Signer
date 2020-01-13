@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.beetech.card_detect.R;
 import com.beetech.card_detect.base.BaseFragment;
-import com.beetech.card_detect.custom.OnDragTouchListener;
+import com.beetech.card_detect.custom.gesture.OnDragTouchListener;
 import com.beetech.card_detect.databinding.PdfViewerFragmentBinding;
 import com.beetech.card_detect.ui.sign.GetSignatureFragment;
 import com.beetech.card_detect.utils.Define;
@@ -27,6 +27,8 @@ import com.github.barteksc.pdfviewer.util.FitPolicy;
 
 import java.io.File;
 import java.util.HashMap;
+
+import okhttp3.ResponseBody;
 
 import static android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
@@ -55,12 +57,11 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                     .load(path)
                     .apply(requestOptions)
                     .into(binding.imgSign);
-            binding.layoutSign.setVisibility(View.VISIBLE);
+            binding.imgSign.setVisibility(View.VISIBLE);
             binding.btnDone.setVisibility(View.VISIBLE);
             bundle.remove("sign");
             setArguments(null);
         }
-
     }
 
     @Override
@@ -77,11 +78,10 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         if (bundle != null) {
             pdfPath = bundle.getString("pdf");
             mViewModel.setPdfPath(pdfPath);
-
             loadFilePdf(new File(pdfPath));
         }
 
-        binding.layoutSign.setOnTouchListener(new OnDragTouchListener(binding.layoutSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
+        binding.imgSign.setOnTouchListener(new OnDragTouchListener(getActivity(), binding.imgSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
             @Override
             public void onDragStart(View view) {
 
@@ -89,10 +89,9 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
             @Override
             public void onDragEnd(View view, boolean isClickDetected) {
-                int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
                 Log.v("ahuhu", "coordinate : " + view.getX() + "  " + view.getY());
-                mViewModel.setxPosition((int) view.getX()); //margin
-                mViewModel.setyPosition(pageHeight - (int) view.getY() - 80); // sub height of sign image and margin
+                int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
+                mViewModel.setPositionSign((int) view.getX(), pageHeight - (int) view.getY() - binding.imgSign.getHeight()); //margin
             }
         }));
 
@@ -102,6 +101,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
     public void initData() {
         mViewModel.getFile().observe(getViewLifecycleOwner(), this::handleObjectResponse);
         mViewModel.getSaveFile().observe(getViewLifecycleOwner(), this::handleObjectResponse);
+        mViewModel.getSignPdf().observe(getViewLifecycleOwner(), this::handleObjectResponse);
     }
 
     @Override
@@ -112,21 +112,26 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         } else if (data instanceof String) {
             Toast.makeText(getContext(), "Lưu thành công !", Toast.LENGTH_SHORT).show();
             getViewController().backFromAddFragment(null);
+        } else if (data instanceof ResponseBody) {
+            String path = FileUtil.saveFile((ResponseBody) data);
+            if (TextUtils.isEmpty(path)) {
+                Toast.makeText(getContext(), "Có lỗi xảy ra.Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+            }else {
+                loadFilePdf(new File(path));
+                binding.btnDone.setVisibility(View.GONE);
+            }
         }
-
     }
 
     private void loadFilePdf(File file) {
         binding.pdfView.fromFile(file)
                 .autoSpacing(true)
-                .pageFling(true)
                 .spacing(10)
                 .defaultPage(0)
                 .pageFitPolicy(FitPolicy.BOTH)
                 .fitEachPage(true)
                 .pageFling(true)
                 .load();
-
     }
 
     @Override
@@ -135,7 +140,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
         binding.btnSign.setOnClickListener(view -> showPopChooseSignOption());
 
-        binding.btnDone.setOnClickListener(view -> mViewModel.processSignatureAction(getContext(), binding.pdfView.getCurrentPage()));
+        binding.btnDone.setOnClickListener(view -> mViewModel.signPdfFile(binding.pdfView.getCurrentPage()));
 
     }
 
@@ -187,24 +192,20 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                     Uri uri = data.getData();
                     try {
                         if (getActivity() != null) {
-//                            DialogUtil.getInstance(getContext()).show();
-//                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), uri);
-//                            String path = FileUtil.saveSignature(getActivity(), bitmap).getAbsolutePath();
-//                            int lastPage = binding.pdfView.getPageCount();
-//                            int xPos = binding.pdfView.getWidth() - 100;
-//                            mViewModel.processSignatureAction(getContext(), path, xPos, lastPage);
-//                            Log.v("ahuhu", "uri " + path);
-
+                            RequestOptions requestOptions = new RequestOptions()
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                    .skipMemoryCache(true);
                             String signPath = FileUtil.getPathFromUri(getContext(), uri);
                             if (TextUtils.isEmpty(signPath)) {
                                 Toast.makeText(getContext(), "Có lỗi xảy ra.Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
                                 return;
                             }
                             mViewModel.setSignPath(signPath);
-                            Glide.with(getContext())
+                            Glide.with(getActivity())
                                     .load(uri)
+                                    .apply(requestOptions)
                                     .into(binding.imgSign);
-                            binding.layoutSign.setVisibility(View.VISIBLE);
+                            binding.imgSign.setVisibility(View.VISIBLE);
                             binding.btnDone.setVisibility(View.VISIBLE);
                         }
                     } catch (Exception e) {

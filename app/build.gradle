@@ -27,7 +27,7 @@ android {
             //signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField 'String', 'BASE_URL', '"http://api.handycart.vn/api/v1/"'
+            buildConfigField 'String', 'BASE_URL', '"http://192.168.18.96:2020/toriaina/api/v1.0/"'
             buildConfigField("String", "API_KEY", "\"ABCXYZ123TEST\"")
         }
         stage {

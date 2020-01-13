@@ -6,7 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +16,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import okhttp3.ResponseBody;
 
 public class FileUtil {
     public static String saveBitmapToPNG(Bitmap bitmap, File photo) throws IOException {
@@ -30,7 +34,7 @@ public class FileUtil {
 
     public static File saveSignature(Context context, Bitmap signature) {
         try {
-            File output = new File(context.getCacheDir(), "signer.png");
+            File output = new File(context.getCacheDir(), Define.SIGN_IMAGE_PATH);
             saveBitmapToPNG(signature, output);
             return output;
         } catch (IOException e) {
@@ -63,6 +67,36 @@ public class FileUtil {
             }
             return "";
         } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public static String getMimeType(String url) {
+        String type = "";
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        return type;
+    }
+
+    public static String saveFile(ResponseBody responseBody) {
+        try {
+            File copyPdfFile = File.createTempFile("sign_file_", ".pdf", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM));
+            InputStream inputStream = responseBody.byteStream();
+            FileOutputStream outputStream = new FileOutputStream(copyPdfFile);
+            byte[] byteData = new byte[4096];
+            while (true) {
+                int content = inputStream.read(byteData);
+                if (content == -1) {
+                    break;
+                }
+                outputStream.write(byteData,0,content);
+            }
+            outputStream.flush();
+            return copyPdfFile.getPath();
+        } catch (IOException e) {
+            e.printStackTrace();
             return "";
         }
     }

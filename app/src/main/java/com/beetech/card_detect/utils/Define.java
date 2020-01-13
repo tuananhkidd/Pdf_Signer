@@ -2,12 +2,13 @@ package com.beetech.card_detect.utils;
 
 public class Define {
 
-    public static final String PREF_FILE_NAME = "oab_pref";
+    public static final String PREF_FILE_NAME = "sign_pref";
     public static final String REALM_NAME = "oab_database";
 
     public static final long DEFAULT_TIMEOUT = 60L;
     public static final long CLICK_TIME_INTERVAL = 300L;
     public static final long TOUCH_TIME_INTERVAL = 200L;
+    public static final String SIGN_IMAGE_PATH = "signer.png";
 
     public static class Api {
 

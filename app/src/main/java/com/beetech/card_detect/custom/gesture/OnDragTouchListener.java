@@ -1,6 +1,9 @@
-package com.beetech.card_detect.custom;
+package com.beetech.card_detect.custom.gesture;
 
+import android.content.Context;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.beetech.card_detect.utils.Define;
@@ -55,14 +58,18 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     private int paddingView = 0;
 
+    private float minimumScale = 0.5f;
+    private float maximumScale = 10.0f;
+    private float scale = 1f;
     private boolean isPreventDrag = false;
 
     private OnDragActionListener mOnDragActionListener;
+    private ScaleGestureDetector detector;
 
-
-    public OnDragTouchListener(View view, PDFView parent, OnDragActionListener onDragActionListener) {
+    public OnDragTouchListener(Context context,View view, PDFView parent, OnDragActionListener onDragActionListener) {
         initListener(view, parent);
         setOnDragActionListener(onDragActionListener);
+        detector = new ScaleGestureDetector(context, new MyScaleListener(view));
     }
 
     public void setOnDragActionListener(OnDragActionListener onDragActionListener) {
@@ -102,6 +109,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        detector.onTouchEvent(event);
         if(isPreventDrag){
             return true;
         }
@@ -188,5 +196,53 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     public void setOnClickDetectedListener(OnClickDetectedListener onClickDetectedListener) {
         this.onClickDetectedListener = onClickDetectedListener;
+    }
+
+    private class MyScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        float onScaleBegin = 0;
+        float onScaleEnd = 0;
+        View imageView;
+
+        public MyScaleListener(View imageView) {
+            this.imageView = imageView;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            scale *= detector.getScaleFactor();
+            imageView.setScaleX(scale);
+            imageView.setScaleY(scale);
+            return true;
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+
+            // Toast.makeText(getApplicationContext(), "Scale Begin", Toast.LENGTH_SHORT).show();
+            Log.i("scale_tag", "Scale Begin");
+            onScaleBegin = scale;
+
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+
+            // Toast.makeText(getApplicationContext(), "Scale Ended", Toast.LENGTH_SHORT).show();
+            Log.i("scale_tag", "Scale End");
+            onScaleEnd = scale;
+
+            if (onScaleEnd > onScaleBegin) {
+                // Toast.makeText(getApplicationContext(), "Scaled Up by a factor of  " + String.valueOf(onScaleEnd / onScaleBegin), Toast.LENGTH_SHORT).show();
+                Log.i("scale_tag", "Scaled Up by a factor of  " + String.valueOf(onScaleEnd / onScaleBegin));
+            }
+
+            if (onScaleEnd < onScaleBegin) {
+                // Toast.makeText(getApplicationContext(), "Scaled Down by a factor of  " + String.valueOf(onScaleBegin / onScaleEnd), Toast.LENGTH_SHORT).show();
+                Log.i("scale_tag", "Scaled Down by a factor of  " + String.valueOf(onScaleBegin / onScaleEnd));
+            }
+
+            super.onScaleEnd(detector);
+        }
     }
 }

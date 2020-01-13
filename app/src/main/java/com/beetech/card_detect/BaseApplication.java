@@ -2,6 +2,7 @@ package com.beetech.card_detect;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 
 import com.beetech.card_detect.di.DaggerAppComponent;
 
@@ -12,6 +13,7 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
 
 public class BaseApplication extends Application implements HasActivityInjector {
+    private static Context context;
 
     @Inject
     DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
@@ -20,11 +22,17 @@ public class BaseApplication extends Application implements HasActivityInjector 
     public void onCreate() {
         super.onCreate();
 
+        context = getApplicationContext();
+
         DaggerAppComponent
                 .builder()
                 .application(this)
                 .build()
                 .inject(this);
+    }
+
+    public static Context getContext() {
+        return context;
     }
 
     @Override
