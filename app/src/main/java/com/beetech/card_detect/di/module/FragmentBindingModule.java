@@ -3,6 +3,7 @@ package com.beetech.card_detect.di.module;
 
 import com.beetech.card_detect.ui.home.HomeFragment;
 import com.beetech.card_detect.ui.pdfview.PdfViewerFragment;
+import com.beetech.card_detect.ui.pdfview.SignedPdfViewerFragment;
 import com.beetech.card_detect.ui.sign.GetSignatureFragment;
 import com.beetech.card_detect.ui.splash.SplashFragment;
 
@@ -21,6 +22,9 @@ public abstract class FragmentBindingModule {
 
     @ContributesAndroidInjector
     abstract PdfViewerFragment bindPdfViewerFragment();
+
+    @ContributesAndroidInjector
+    abstract SignedPdfViewerFragment bindSignedPdfViewerFragment();
 
     @ContributesAndroidInjector
     abstract GetSignatureFragment bindGetSignatureFragment();

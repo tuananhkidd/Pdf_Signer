@@ -177,7 +177,7 @@ public abstract class BaseActivity<T extends ViewDataBinding> extends DaggerAppC
         }
 
         if (isShowDialog && requestError != null) {
-            Toast.makeText(this, requestError.getErrorMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Có lỗi xảy ra.Vui lòng thử lại", Toast.LENGTH_LONG).show();
         }
 
         return requestError;

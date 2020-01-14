@@ -101,9 +101,14 @@ dependencies {
     //pdf view
 //    implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
     implementation 'com.github.barteksc:android-pdf-viewer:3.2.0-beta.1'
-    implementation 'com.tom_roush:pdfbox-android:1.8.10.1'
+    implementation "com.pdftron:pdftron:7.0.3"
+    implementation "com.pdftron:tools:7.0.3"
+
+//    implementation 'com.tom_roush:pdfbox-android:1.8.10.1'
     implementation 'com.nbsp:library:1.8'
     implementation 'com.github.gcacace:signature-pad:1.2.1'
     implementation 'com.github.bumptech.glide:glide:4.9.0'
+
+
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 }

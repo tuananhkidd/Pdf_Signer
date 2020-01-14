@@ -7,6 +7,7 @@ import com.beetech.card_detect.di.ViewModelFactory;
 import com.beetech.card_detect.ui.home.HomeViewModel;
 import com.beetech.card_detect.ui.main.MainViewModel;
 import com.beetech.card_detect.ui.pdfview.PdfViewerViewModel;
+import com.beetech.card_detect.ui.pdfview.SignedPdfViewerViewModel;
 import com.beetech.card_detect.ui.sign.GetSignatureViewModel;
 import com.beetech.card_detect.ui.splash.SplashViewModel;
 
@@ -37,6 +38,11 @@ public abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(PdfViewerViewModel.class)
     abstract ViewModel bindPdfViewerViewModel(PdfViewerViewModel viewModel);
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SignedPdfViewerViewModel.class)
+    abstract ViewModel bindSignedPdfViewerViewModel(SignedPdfViewerViewModel viewModel);
 
 
     @Binds

@@ -24,6 +24,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
+import com.pdftron.pdf.config.ViewerConfig;
+import com.pdftron.pdf.controls.DocumentActivity;
 
 import java.io.File;
 import java.util.HashMap;
@@ -116,9 +118,21 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             String path = FileUtil.saveFile((ResponseBody) data);
             if (TextUtils.isEmpty(path)) {
                 Toast.makeText(getContext(), "Có lỗi xảy ra.Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-            }else {
-                loadFilePdf(new File(path));
-                binding.btnDone.setVisibility(View.GONE);
+            } else {
+//                loadFilePdf(new File(path));
+//                binding.btnDone.setVisibility(View.GONE);
+                getViewController().backFromAddFragment(null);
+                HashMap<String,String> bundle = new HashMap<>();
+                bundle.put("pdf_sign_file",path);
+                ViewerConfig viewerConfig = new ViewerConfig.Builder().documentEditingEnabled(false)
+                        .autoHideToolbarEnabled(true)
+                        .multiTabEnabled(false)
+                        .showBottomNavBar(false)
+                        .useSupportActionBar(false)
+                        .showDocumentSettingsOption(false)
+                        .showTopToolbar(false)
+                        .build();
+                DocumentActivity.openDocument(getContext(), Uri.fromFile(new File(path)),viewerConfig);
             }
         }
     }

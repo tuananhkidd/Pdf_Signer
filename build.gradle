@@ -17,6 +17,9 @@ allprojects {
         maven {
             url  "http://dl.bintray.com/lukaville/maven"
         }
+        maven {
+            url "https://pdftron-maven.s3.amazonaws.com/release"
+        }
     }
 }
 
