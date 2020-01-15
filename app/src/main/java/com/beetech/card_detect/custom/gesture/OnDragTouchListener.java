@@ -57,8 +57,8 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     private int paddingView = 0;
 
-    private float minimumScale = 1f;
-    private float maximumScale = 3.5f;
+    private float minimumScale = 0.5f;
+    private float maximumScale = 1.5f;
     private boolean isPreventDrag = false;
 
     private OnDragActionListener mOnDragActionListener;
@@ -103,6 +103,12 @@ public class OnDragTouchListener implements View.OnTouchListener {
         height = mView.getHeight();
         yWhenAttached = mView.getY();
         dY = 0;
+
+        Rect rect = new Rect();
+        mView.getHitRect(rect);
+
+        width = rect.width();
+        height = rect.height();
     }
 
     public void updateParentBounds() {
@@ -251,23 +257,24 @@ public class OnDragTouchListener implements View.OnTouchListener {
         scale = Math.max(info.minimumScale, Math.min(info.maximumScale, scale));
         view.setScaleX(scale);
         view.setScaleY(scale);
-
+        mView.setPivotX(0);
+        mView.setPivotY(0);
         updateRestrictDrag(view);
     }
 
     public void scaleView(boolean isBiggerScale) {
-        if (isBiggerScale) {
-            mView.setScaleX(2);
-            mView.setScaleY(2);
-        } else {
-            mView.setScaleX(1);
-            mView.setScaleY(1);
-        }
-
-        mView.setPivotX(0);
-        mView.setPivotY(0);
-
-        updateRestrictDrag(mView);
+//        if (isBiggerScale) {
+//            mView.setScaleX(1.1f);
+//            mView.setScaleY(1.1f);
+//        } else {
+//            mView.setScaleX(0.8f);
+//            mView.setScaleY(0.8f);
+//        }
+//
+//        mView.setPivotX(0);
+//        mView.setPivotY(0);
+//
+//        updateRestrictDrag(mView);
     }
 
     private void updateRestrictDrag(View view) {

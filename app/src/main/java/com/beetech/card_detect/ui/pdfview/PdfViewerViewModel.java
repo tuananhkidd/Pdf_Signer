@@ -34,10 +34,10 @@ import okhttp3.ResponseBody;
 public class PdfViewerViewModel extends BaseViewModel {
     private String pdfPath;
     private String signPath;
-    private int xFirstPosition;
-    private int yFirtstPosition;
-    private int xSecondPosition;
-    private int ySecondPosition;
+    private double xFirstPosition;
+    private double yFirtstPosition;
+    private double xSecondPosition;
+    private double ySecondPosition;
     private Repository repository;
 
     private MutableLiveData<ObjectResponse<File>> file = new MutableLiveData<>();
@@ -130,6 +130,7 @@ public class PdfViewerViewModel extends BaseViewModel {
                             signPdf.setValue(new ObjectResponse<ResponseBody>().success(body));
                         },
                         throwable -> {
+                            Toast.makeText(BaseApplication.getContext(), "error " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
                             signPdf.setValue(new ObjectResponse<ResponseBody>().error(throwable));
                         }
                 ));
@@ -173,7 +174,7 @@ public class PdfViewerViewModel extends BaseViewModel {
         this.signPath = path;
     }
 
-    public void setPositionSign(int xFirstPosition, int yFirtstPosition, int xSecondPosition, int ySecondPosition) {
+    public void setPositionSign(double xFirstPosition, double yFirtstPosition, double xSecondPosition, double ySecondPosition) {
         this.xFirstPosition = xFirstPosition;
         this.yFirtstPosition = yFirtstPosition;
 

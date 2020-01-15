@@ -2,13 +2,16 @@ package com.beetech.card_detect.ui.pdfview;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -20,6 +23,7 @@ import com.beetech.card_detect.custom.gesture.OnDragTouchListener;
 import com.beetech.card_detect.databinding.PdfViewerFragmentBinding;
 import com.beetech.card_detect.ui.sign.GetSignatureFragment;
 import com.beetech.card_detect.utils.Define;
+import com.beetech.card_detect.utils.DeviceUtil;
 import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -84,25 +88,6 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             loadFilePdf(new File(pdfPath));
         }
 
-        final OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
-            @Override
-            public void onDragStart(View view) {
-
-            }
-
-            @Override
-            public void onDragEnd(View view, boolean isClickDetected) {
-                Log.v("ahuhu", "coordinate : " + view.getX() + "  " + view.getY());
-                Rect rect = new Rect();
-                view.getHitRect(rect);
-                int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
-                mViewModel.setPositionSign((int) view.getX(), pageHeight - (int) view.getY() - rect.height(),
-                        (int) (view.getX()+rect.width()),pageHeight - (int) view.getY()); //margin
-            }
-        });
-        onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
-        binding.imgSign.setOnTouchListener(onDragTouchListener);
-
     }
 
     @Override
@@ -133,9 +118,9 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                 ViewerConfig viewerConfig = new ViewerConfig.Builder().documentEditingEnabled(false)
                         .autoHideToolbarEnabled(true)
                         .multiTabEnabled(false)
-                        .showBottomNavBar(false)
                         .useSupportActionBar(false)
                         .showDocumentSettingsOption(false)
+                        .rightToLeftModeEnabled(true)
                         .showTopToolbar(false)
                         .build();
                 DocumentActivity.openDocument(getContext(), Uri.fromFile(new File(path)), viewerConfig);
@@ -150,8 +135,32 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                 .defaultPage(0)
                 .pageFitPolicy(FitPolicy.BOTH)
                 .fitEachPage(true)
+                .onPageChange((page, pageCount) -> {
+                    binding.imgSign.animate().translationX(0).translationY(0).setDuration(300).start();
+                    final OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
+                        @Override
+                        public void onDragStart(View view) {
+
+                        }
+
+                        @Override
+                        public void onDragEnd(View view, boolean isClickDetected) {
+                            Log.v("ahuhu", "coordinate : " + view.getX() + "  " + view.getY());
+                            Rect rect = new Rect();
+                            view.getHitRect(rect);
+                            int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
+                            int pageWidth = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getWidth();
+                            mViewModel.setPositionSign(view.getX() / pageWidth, (pageHeight - view.getY() - rect.height()) / pageHeight,
+                                    (view.getX() + rect.width()) / pageWidth, (pageHeight - view.getY()) / pageHeight);
+                        }
+                    });
+                    onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
+                    binding.imgSign.setOnTouchListener(onDragTouchListener);
+                })
                 .pageFling(true)
                 .load();
+
+        binding.pdfView.setBackgroundColor(Color.LTGRAY);
     }
 
     @Override
@@ -212,6 +221,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                     Uri uri = data.getData();
                     try {
                         if (getActivity() != null) {
+//                            adjustImageSize(Define.SIGN_MODE.PHOTO);
                             RequestOptions requestOptions = new RequestOptions()
                                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                                     .skipMemoryCache(true);

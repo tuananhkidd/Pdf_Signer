@@ -9,10 +9,11 @@
         tools:context="com.beetech.card_detect.ui.splash.SplashFragment"
         >
 
-        <TextView
+        <ProgressBar
             android:gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
             android:text="Splash"
             />
 

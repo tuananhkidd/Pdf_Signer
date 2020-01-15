@@ -5,10 +5,15 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.lifecycle.ViewModelProviders;
 
@@ -16,6 +21,7 @@ import com.beetech.card_detect.R;
 import com.beetech.card_detect.base.BaseFragment;
 import com.beetech.card_detect.databinding.GetSignatureFragmentBinding;
 import com.beetech.card_detect.utils.Define;
+import com.beetech.card_detect.utils.DeviceUtil;
 import com.beetech.card_detect.utils.FileUtil;
 import com.github.gcacace.signaturepad.views.SignaturePad;
 
@@ -62,7 +68,8 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
 
     @Override
     public void initData() {
-        binding.signaturePad.setPenColor(Color.RED);
+        binding.signaturePad.setPenColor(Color.BLACK);
+        binding.signaturePad.setMinWidth(10);
         binding.signaturePad.setOnSignedListener(new SignaturePad.OnSignedListener() {
             @Override
             public void onStartSigning() {
@@ -87,8 +94,9 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
             Bitmap signatureBitmap;
             if (Define.SIGN_MODE.DRAW.equals(signMode)) {
                 signatureBitmap = binding.signaturePad.getTransparentSignatureBitmap();
-            }else {
-                signatureBitmap = Bitmap.createBitmap(150,150, Bitmap.Config.ARGB_8888);
+            } else {
+                int screenWidth = DeviceUtil.widthScreenPixel(getContext());
+                signatureBitmap = Bitmap.createBitmap(screenWidth,200, Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(signatureBitmap);
                 Paint paint = new Paint();
                 paint.setColor(Color.TRANSPARENT);
@@ -96,12 +104,16 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
                 canvas.drawPaint(paint);
 
                 paint.setColor(Color.BLACK);
-                paint.setTextSize(20);
-                canvas.drawText(binding.edtSign.getText().toString(),75,75,paint);
+                paint.setTextSize(50);
+                paint.setTextAlign(Paint.Align.CENTER);
+                float textHeight = paint.descent() - paint.ascent();
+                float textOffset = (textHeight / 2) - paint.descent();
+
+                RectF bounds = new RectF(0, 0, screenWidth, 200);
+                canvas.drawText(binding.edtSign.getText().toString(),bounds.centerX(),bounds.centerY() + textOffset,paint);
                 canvas.setBitmap(signatureBitmap);
             }
             File signatureFile = FileUtil.saveSignature(getContext(), signatureBitmap);
-
             HashMap<String, String> data = new HashMap<>();
             data.put("sign", signatureFile.getAbsolutePath());
             getViewController().backFromAddFragment(data);
