@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">PDF Sign</string>
-    <string name="clear_pad">Xóa</string>
-    <string name="get_signature_button_sign">Lưu chữ ký</string>
+    <string name="clear_pad">Delete</string>
+    <string name="get_signature_button_sign">Save</string>
 </resources>

@@ -2,13 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/item_select_image"
-        android:title="Chọn ảnh" />
+        android:title="Select Image" />
 
     <item
         android:id="@+id/item_draw"
-        android:title="Vẽ chữ ký" />
+        android:title="Draw Signature" />
 
     <item
         android:id="@+id/item_hand_writing"
-        android:title="Viết chữ ký" />
+        android:title="Write Signature" />
 </menu>

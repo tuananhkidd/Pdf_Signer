@@ -1,19 +1,14 @@
 package com.beetech.card_detect.ui.sign;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.lifecycle.ViewModelProviders;
 
@@ -96,7 +91,7 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
                 signatureBitmap = binding.signaturePad.getTransparentSignatureBitmap();
             } else {
                 int screenWidth = DeviceUtil.widthScreenPixel(getContext());
-                signatureBitmap = Bitmap.createBitmap(screenWidth,200, Bitmap.Config.ARGB_8888);
+                signatureBitmap = Bitmap.createBitmap(screenWidth, 200, Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(signatureBitmap);
                 Paint paint = new Paint();
                 paint.setColor(Color.TRANSPARENT);
@@ -110,7 +105,7 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
                 float textOffset = (textHeight / 2) - paint.descent();
 
                 RectF bounds = new RectF(0, 0, screenWidth, 200);
-                canvas.drawText(binding.edtSign.getText().toString(),bounds.centerX(),bounds.centerY() + textOffset,paint);
+                canvas.drawText(binding.edtSign.getText().toString(), bounds.centerX(), bounds.centerY() + textOffset, paint);
                 canvas.setBitmap(signatureBitmap);
             }
             File signatureFile = FileUtil.saveSignature(getContext(), signatureBitmap);

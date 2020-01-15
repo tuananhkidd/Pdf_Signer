@@ -73,7 +73,7 @@ public class HomeFragment extends BaseFragment<HomeFragmentBinding> {
                 .withRequestCode(REQUEST_CODE_PICK_PDF_FILE)
                 .withFilter(Pattern.compile(".*\\.pdf$")) // Filtering files and directories by file name using regexp
                 .withFilterDirectories(false) // Set directories filterable (false by default)
-                .withTitle("Chọn 1 file pdf")
+                .withTitle("Select Pdf File")
                 .start();
     }
 

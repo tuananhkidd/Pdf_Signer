@@ -12,7 +12,7 @@
             android:id="@+id/btn_select_file"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select file PDF"
+            android:text="Select PDF File"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

@@ -9,9 +9,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.PopupMenu;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -23,7 +21,6 @@ import com.beetech.card_detect.custom.gesture.OnDragTouchListener;
 import com.beetech.card_detect.databinding.PdfViewerFragmentBinding;
 import com.beetech.card_detect.ui.sign.GetSignatureFragment;
 import com.beetech.card_detect.utils.Define;
-import com.beetech.card_detect.utils.DeviceUtil;
 import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
