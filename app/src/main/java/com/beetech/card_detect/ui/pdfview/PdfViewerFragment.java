@@ -2,6 +2,7 @@ package com.beetech.card_detect.ui.pdfview;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -83,7 +84,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             loadFilePdf(new File(pdfPath));
         }
 
-        binding.imgSign.setOnTouchListener(new OnDragTouchListener(getActivity(), binding.imgSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
+        final OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
             @Override
             public void onDragStart(View view) {
 
@@ -92,10 +93,15 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             @Override
             public void onDragEnd(View view, boolean isClickDetected) {
                 Log.v("ahuhu", "coordinate : " + view.getX() + "  " + view.getY());
+                Rect rect = new Rect();
+                view.getHitRect(rect);
                 int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
-                mViewModel.setPositionSign((int) view.getX(), pageHeight - (int) view.getY() - binding.imgSign.getHeight()); //margin
+                mViewModel.setPositionSign((int) view.getX(), pageHeight - (int) view.getY() - rect.height(),
+                        (int) (view.getX()+rect.width()),pageHeight - (int) view.getY()); //margin
             }
-        }));
+        });
+        onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
+        binding.imgSign.setOnTouchListener(onDragTouchListener);
 
     }
 
@@ -122,8 +128,8 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 //                loadFilePdf(new File(path));
 //                binding.btnDone.setVisibility(View.GONE);
                 getViewController().backFromAddFragment(null);
-                HashMap<String,String> bundle = new HashMap<>();
-                bundle.put("pdf_sign_file",path);
+                HashMap<String, String> bundle = new HashMap<>();
+                bundle.put("pdf_sign_file", path);
                 ViewerConfig viewerConfig = new ViewerConfig.Builder().documentEditingEnabled(false)
                         .autoHideToolbarEnabled(true)
                         .multiTabEnabled(false)
@@ -132,7 +138,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                         .showDocumentSettingsOption(false)
                         .showTopToolbar(false)
                         .build();
-                DocumentActivity.openDocument(getContext(), Uri.fromFile(new File(path)),viewerConfig);
+                DocumentActivity.openDocument(getContext(), Uri.fromFile(new File(path)), viewerConfig);
             }
         }
     }

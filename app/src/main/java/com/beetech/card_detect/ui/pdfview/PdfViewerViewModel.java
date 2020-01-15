@@ -34,8 +34,10 @@ import okhttp3.ResponseBody;
 public class PdfViewerViewModel extends BaseViewModel {
     private String pdfPath;
     private String signPath;
-    private int xPosition;
-    private int yPosition;
+    private int xFirstPosition;
+    private int yFirtstPosition;
+    private int xSecondPosition;
+    private int ySecondPosition;
     private Repository repository;
 
     private MutableLiveData<ObjectResponse<File>> file = new MutableLiveData<>();
@@ -71,7 +73,7 @@ public class PdfViewerViewModel extends BaseViewModel {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             Bitmap bitmap = BitmapFactory.decodeFile(signPath, options);
-            pdf.insertImage(FileUtil.saveSignature(context, bitmap).getAbsolutePath(), xPosition, yPosition, 100, 80, currentPage + 1);
+//            pdf.insertImage(FileUtil.saveSignature(context, bitmap).getAbsolutePath(), xPosition, yPosition, 100, 80, currentPage + 1);
 
             return copyPdfFile;
         };
@@ -117,9 +119,8 @@ public class PdfViewerViewModel extends BaseViewModel {
         MultipartBody.Part signBody =
                 MultipartBody.Part.createFormData("signed-image", signFile.getName(), signRequestFile);
 
-        //fixme fix width ,height image
-        String signLocation = this.xPosition + "," + (this.yPosition - 40) + "," + (this.xPosition + 60) + "," + this.yPosition + "," + currentPage;
-        RequestBody signLocationBody = RequestBody.create(MediaType.parse("text/plain"),signLocation);
+        String signLocation = this.xFirstPosition + "," + (this.yFirtstPosition) + "," + (this.xSecondPosition) + "," + this.ySecondPosition + "," + currentPage;
+        RequestBody signLocationBody = RequestBody.create(MediaType.parse("text/plain"), signLocation);
         mDisposable.add(repository.signPdf(signLocationBody, pdfBody, signBody)
                 .doOnSubscribe(disposable -> {
                     signPdf.setValue(new ObjectResponse<ResponseBody>().loading());
@@ -172,9 +173,12 @@ public class PdfViewerViewModel extends BaseViewModel {
         this.signPath = path;
     }
 
-    public void setPositionSign(int xPosition, int yPosition) {
-        this.xPosition = xPosition;
-        this.yPosition = yPosition;
+    public void setPositionSign(int xFirstPosition, int yFirtstPosition, int xSecondPosition, int ySecondPosition) {
+        this.xFirstPosition = xFirstPosition;
+        this.yFirtstPosition = yFirtstPosition;
+
+        this.xSecondPosition = xSecondPosition;
+        this.ySecondPosition = ySecondPosition;
     }
 
 //    public void initDataIfExist() {

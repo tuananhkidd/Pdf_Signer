@@ -1,12 +1,10 @@
 package com.beetech.card_detect.custom.gesture;
 
-import android.content.Context;
-import android.util.Log;
+import android.graphics.Rect;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
 
-import com.beetech.card_detect.utils.Define;
 import com.github.barteksc.pdfviewer.PDFView;
 
 
@@ -38,6 +36,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
     private OnClickDetectedListener onClickDetectedListener;
 
     public long lastTouchTime = System.currentTimeMillis();
+    private GestureDetector mGestureListener;
 
     private View mView;
     private PDFView mParent;
@@ -58,18 +57,25 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     private int paddingView = 0;
 
-    private float minimumScale = 0.5f;
-    private float maximumScale = 10.0f;
-    private float scale = 1f;
+    private float minimumScale = 1f;
+    private float maximumScale = 3.5f;
     private boolean isPreventDrag = false;
 
     private OnDragActionListener mOnDragActionListener;
     private ScaleGestureDetector detector;
+    private OnGestureControl mOnGestureControl;
+    private boolean mIsTextPinchZoomable = true;
+    private boolean isBiggerScale = true;
 
-    public OnDragTouchListener(Context context,View view, PDFView parent, OnDragActionListener onDragActionListener) {
+    public interface OnGestureControl {
+        void onDoubleTab(boolean isBiggerScale);
+    }
+
+    public OnDragTouchListener( View view, PDFView parent, OnDragActionListener onDragActionListener) {
         initListener(view, parent);
         setOnDragActionListener(onDragActionListener);
-        detector = new ScaleGestureDetector(context, new MyScaleListener(view));
+        detector = new ScaleGestureDetector(new ScaleGestureListener());
+        mGestureListener = new GestureDetector(new GestureListener());
     }
 
     public void setOnDragActionListener(OnDragActionListener onDragActionListener) {
@@ -109,7 +115,8 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        detector.onTouchEvent(event);
+        detector.onTouchEvent(v,event);
+        mGestureListener.onTouchEvent(event);
         if(isPreventDrag){
             return true;
         }
@@ -143,7 +150,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
                 case MotionEvent.ACTION_UP:
                     boolean isClickDetected = false;
                     long now = System.currentTimeMillis();
-                    if (now - lastTouchTime < Define.TOUCH_TIME_INTERVAL) {
+                    if (now - lastTouchTime < 200) {
                         if (onClickDetectedListener != null) {
                             isClickDetected = true;
                             onClickDetectedListener.onClickDetected(true);
@@ -198,51 +205,91 @@ public class OnDragTouchListener implements View.OnTouchListener {
         this.onClickDetectedListener = onClickDetectedListener;
     }
 
-    private class MyScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        float onScaleBegin = 0;
-        float onScaleEnd = 0;
-        View imageView;
-
-        public MyScaleListener(View imageView) {
-            this.imageView = imageView;
-        }
-
+    public class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            scale *= detector.getScaleFactor();
-            imageView.setScaleX(scale);
-            imageView.setScaleY(scale);
+        public boolean onDoubleTap(MotionEvent e) {
+            if (mOnGestureControl != null) {
+                mOnGestureControl.onDoubleTab(isBiggerScale);
+                isBiggerScale = !isBiggerScale;
+            }
             return true;
         }
+    }
+
+    private class ScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+
+        private float mPivotX;
+        private float mPivotY;
+        private Vector2D mPrevSpanVector = new Vector2D();
 
         @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
-
-            // Toast.makeText(getApplicationContext(), "Scale Begin", Toast.LENGTH_SHORT).show();
-            Log.i("scale_tag", "Scale Begin");
-            onScaleBegin = scale;
-
-            return true;
+        public boolean onScaleBegin(View view, ScaleGestureDetector detector) {
+            mPivotX = detector.getFocusX();
+            mPivotY = detector.getFocusY();
+            mPrevSpanVector.set(detector.getCurrentSpanVector());
+            return mIsTextPinchZoomable;
         }
 
         @Override
-        public void onScaleEnd(ScaleGestureDetector detector) {
-
-            // Toast.makeText(getApplicationContext(), "Scale Ended", Toast.LENGTH_SHORT).show();
-            Log.i("scale_tag", "Scale End");
-            onScaleEnd = scale;
-
-            if (onScaleEnd > onScaleBegin) {
-                // Toast.makeText(getApplicationContext(), "Scaled Up by a factor of  " + String.valueOf(onScaleEnd / onScaleBegin), Toast.LENGTH_SHORT).show();
-                Log.i("scale_tag", "Scaled Up by a factor of  " + String.valueOf(onScaleEnd / onScaleBegin));
-            }
-
-            if (onScaleEnd < onScaleBegin) {
-                // Toast.makeText(getApplicationContext(), "Scaled Down by a factor of  " + String.valueOf(onScaleBegin / onScaleEnd), Toast.LENGTH_SHORT).show();
-                Log.i("scale_tag", "Scaled Down by a factor of  " + String.valueOf(onScaleBegin / onScaleEnd));
-            }
-
-            super.onScaleEnd(detector);
+        public boolean onScale(View view, ScaleGestureDetector detector) {
+            TransformInfo info = new TransformInfo();
+            info.deltaScale =  detector.getScaleFactor();
+            info.deltaAngle =  Vector2D.getAngle(mPrevSpanVector, detector.getCurrentSpanVector()) ;
+            info.deltaX =  detector.getFocusX() - mPivotX;
+            info.deltaY =  detector.getFocusY() - mPivotY;
+            info.pivotX = mPivotX;
+            info.pivotY = mPivotY;
+            info.minimumScale = minimumScale;
+            info.maximumScale = maximumScale;
+            move(view, info);
+            return !mIsTextPinchZoomable;
         }
+    }
+
+    private void move(View view, TransformInfo info) {
+        float scale = view.getScaleX() * info.deltaScale;
+        scale = Math.max(info.minimumScale, Math.min(info.maximumScale, scale));
+        view.setScaleX(scale);
+        view.setScaleY(scale);
+
+        updateRestrictDrag(view);
+    }
+
+    public void scaleView(boolean isBiggerScale) {
+        if (isBiggerScale) {
+            mView.setScaleX(2);
+            mView.setScaleY(2);
+        } else {
+            mView.setScaleX(1);
+            mView.setScaleY(1);
+        }
+
+        mView.setPivotX(0);
+        mView.setPivotY(0);
+
+        updateRestrictDrag(mView);
+    }
+
+    private void updateRestrictDrag(View view) {
+        Rect rect = new Rect();
+        view.getHitRect(rect);
+
+        width = rect.width();
+        height = rect.height();
+    }
+
+    public void setOnGestureControl(OnGestureControl onGestureControl) {
+        mOnGestureControl = onGestureControl;
+    }
+
+    private class TransformInfo {
+        float deltaX;
+        float deltaY;
+        float deltaScale;
+        float deltaAngle;
+        float pivotX;
+        float pivotY;
+        float minimumScale;
+        float maximumScale;
     }
 }

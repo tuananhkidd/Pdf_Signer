@@ -40,15 +40,15 @@ public class SignedPdfViewerFragment extends BaseFragment<SignedPdfViewerFragmen
 
         Bundle bundle = getArguments();
         if (bundle != null) {
-            try {
-                String filePath = bundle.getString("pdf");
-                binding.pdfView.setPagePresentationMode(PDFViewCtrl.PagePresentationMode.SINGLE_VERT);
-                binding.pdfView.openPDFUri(Uri.fromFile(new File(filePath)), "");
-            } catch (PDFNetException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                String filePath = bundle.getString("pdf");
+////                binding.pdfView.setPagePresentationMode(PDFViewCtrl.PagePresentationMode.SINGLE_VERT);
+////                binding.pdfView.openPDFUri(Uri.fromFile(new File(filePath)), "");
+//            } catch (PDFNetException e) {
+//                e.printStackTrace();
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 
