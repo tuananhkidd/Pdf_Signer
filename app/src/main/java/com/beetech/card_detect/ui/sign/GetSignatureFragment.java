@@ -111,6 +111,7 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
             File signatureFile = FileUtil.saveSignature(getContext(), signatureBitmap);
             HashMap<String, String> data = new HashMap<>();
             data.put("sign", signatureFile.getAbsolutePath());
+            data.put("mode", signMode);
             getViewController().backFromAddFragment(data);
         });
     }

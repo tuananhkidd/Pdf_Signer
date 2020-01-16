@@ -61,6 +61,7 @@
 
 
             <ImageView
+                android:background="@drawable/bg_sign_layout"
                 android:id="@+id/img_sign"
                 android:layout_width="100dp"
                 android:layout_height="100dp"

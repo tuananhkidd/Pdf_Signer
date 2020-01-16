@@ -131,7 +131,7 @@ public class PdfViewerViewModel extends BaseViewModel {
                             signPdf.setValue(new ObjectResponse<ResponseBody>().success(body));
                         },
                         throwable -> {
-                            Toast.makeText(BaseApplication.getContext(), "error " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(BaseApplication.getContext(), "error " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
                             signPdf.setValue(new ObjectResponse<ResponseBody>().error(throwable));
                         }
                 ));

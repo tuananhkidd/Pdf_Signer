@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -55,6 +56,8 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         Bundle bundle = getArguments();
         if (bundle != null && bundle.containsKey("sign")) {
             String path = bundle.getString("sign");
+            String mode = bundle.getString("mode");
+            changeImageScaleType(mode);
             mViewModel.setSignPath(path);
 
             RequestOptions requestOptions = new RequestOptions()
@@ -71,6 +74,18 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         }
     }
 
+    private void changeImageScaleType(String mode){
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.imgSign.getLayoutParams();
+        if(Define.SIGN_MODE.HANDWRITING.equals(mode)){
+            layoutParams.width = DeviceUtil.widthScreenPixel(getContext())/2;
+            layoutParams.height = DeviceUtil.convertDpToPx(getContext(),50);
+        }else {
+            layoutParams.width = DeviceUtil.convertDpToPx(getContext(),100);
+            layoutParams.height = DeviceUtil.convertDpToPx(getContext(),100);
+        }
+        binding.imgSign.setLayoutParams(layoutParams);
+
+    }
     @Override
     public boolean backPressed() {
         getViewController().backFromAddFragment(null);
@@ -329,7 +344,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                     Uri uri = data.getData();
                     try {
                         if (getActivity() != null) {
-//                            adjustImageSize(Define.SIGN_MODE.PHOTO);
+                            changeImageScaleType(Define.SIGN_MODE.PHOTO);
                             RequestOptions requestOptions = new RequestOptions()
                                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                                     .skipMemoryCache(true);
