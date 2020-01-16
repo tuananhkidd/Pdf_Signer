@@ -38,6 +38,7 @@ public class PdfViewerViewModel extends BaseViewModel {
     private double yFirtstPosition;
     private double xSecondPosition;
     private double ySecondPosition;
+    private int signPage;
     private Repository repository;
 
     private MutableLiveData<ObjectResponse<File>> file = new MutableLiveData<>();
@@ -119,7 +120,7 @@ public class PdfViewerViewModel extends BaseViewModel {
         MultipartBody.Part signBody =
                 MultipartBody.Part.createFormData("signed-image", signFile.getName(), signRequestFile);
 
-        String signLocation = this.xFirstPosition + "," + (this.yFirtstPosition) + "," + (this.xSecondPosition) + "," + this.ySecondPosition + "," + currentPage;
+        String signLocation = this.xFirstPosition + "," + (this.yFirtstPosition) + "," + (this.xSecondPosition) + "," + this.ySecondPosition + "," + signPage;
         RequestBody signLocationBody = RequestBody.create(MediaType.parse("text/plain"), signLocation);
         mDisposable.add(repository.signPdf(signLocationBody, pdfBody, signBody)
                 .doOnSubscribe(disposable -> {
@@ -174,12 +175,14 @@ public class PdfViewerViewModel extends BaseViewModel {
         this.signPath = path;
     }
 
-    public void setPositionSign(double xFirstPosition, double yFirtstPosition, double xSecondPosition, double ySecondPosition) {
+    public void setPositionSign(double xFirstPosition, double yFirtstPosition, double xSecondPosition, double ySecondPosition,int signPage) {
         this.xFirstPosition = xFirstPosition;
         this.yFirtstPosition = yFirtstPosition;
 
         this.xSecondPosition = xSecondPosition;
         this.ySecondPosition = ySecondPosition;
+
+        this.signPage = signPage;
     }
 
 //    public void initDataIfExist() {

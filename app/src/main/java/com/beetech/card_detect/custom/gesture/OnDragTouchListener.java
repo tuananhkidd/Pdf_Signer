@@ -39,7 +39,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
     private GestureDetector mGestureListener;
 
     private View mView;
-    private PDFView mParent;
+    private View mParent;
     private boolean isDragging;
     private boolean isInitialized = false;
 
@@ -71,7 +71,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
         void onDoubleTab(boolean isBiggerScale);
     }
 
-    public OnDragTouchListener( View view, PDFView parent, OnDragActionListener onDragActionListener) {
+    public OnDragTouchListener( View view, View parent, OnDragActionListener onDragActionListener) {
         initListener(view, parent);
         setOnDragActionListener(onDragActionListener);
         detector = new ScaleGestureDetector(new ScaleGestureListener());
@@ -82,7 +82,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
         mOnDragActionListener = onDragActionListener;
     }
 
-    public void initListener(View view, PDFView parent) {
+    public void initListener(View view, View parent) {
         mView = view;
         mParent = parent;
         isDragging = false;
@@ -113,10 +113,10 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     public void updateParentBounds() {
         maxLeft = 0 - paddingView;
-        maxRight = maxLeft + mParent.getPageSize(mParent.getCurrentPage()).getWidth() + paddingView + paddingView;
+        maxRight = maxLeft + mParent.getWidth() + paddingView + paddingView;
 
         maxTop = 0 - paddingView;
-        maxBottom = maxTop + mParent.getPageSize(mParent.getCurrentPage()).getHeight() + paddingView + paddingView;
+        maxBottom = maxTop + mParent.getHeight() + paddingView + paddingView;
     }
 
     @Override

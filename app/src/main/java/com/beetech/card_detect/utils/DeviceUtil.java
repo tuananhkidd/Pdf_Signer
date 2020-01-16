@@ -88,4 +88,14 @@ public class DeviceUtil {
 
         return metrics.widthPixels;
     }
+
+    public static int heightScreenPixel(Context context) {
+        if (context == null) {
+            return 0;
+        }
+        Resources resources = context.getResources();
+        DisplayMetrics metrics = resources.getDisplayMetrics();
+
+        return metrics.heightPixels;
+    }
 }

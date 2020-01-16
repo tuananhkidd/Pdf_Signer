@@ -21,10 +21,13 @@ import com.beetech.card_detect.custom.gesture.OnDragTouchListener;
 import com.beetech.card_detect.databinding.PdfViewerFragmentBinding;
 import com.beetech.card_detect.ui.sign.GetSignatureFragment;
 import com.beetech.card_detect.utils.Define;
+import com.beetech.card_detect.utils.DeviceUtil;
 import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
+import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.pdftron.pdf.config.ViewerConfig;
 import com.pdftron.pdf.controls.DocumentActivity;
@@ -85,6 +88,95 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             loadFilePdf(new File(pdfPath));
         }
 
+//        binding.imgSign.animate().translationX(0).translationY(0).setDuration(300).start();
+        final OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.container, new OnDragTouchListener.OnDragActionListener() {
+            @Override
+            public void onDragStart(View view) {
+
+            }
+
+            @Override
+            public void onDragEnd(View view, boolean isClickDetected) {
+                Rect rect = new Rect();
+                view.getHitRect(rect);
+
+                //check position beetween two page
+
+                int fistPage = pageFromView(view.getY());
+                int secondPage = pageFromView(view.getY() + rect.height());
+                int currentPage = binding.pdfView.getCurrentPage();
+                int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
+                int pageWidth = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getWidth();
+
+//                Log.v("ahuhu", "page : " + binding.pdfView.getCurrentPage() + " , 1: " + fistPage + " , 2:" + secondPage + "  ,mid:" + middlePage);
+//                Log.v("ahuhu", "coordinate : " + view.getY() + "  " + rect.height() + "   " + (view.getY() + rect.height() / 2));
+                if (fistPage != secondPage) {
+                    binding.pdfView.jumpTo(currentPage, true);
+                    moveImageToRoot();
+                } else {
+                    int checkHeadPosition = (int) view.getY();
+                    int checkEndPosition = (int) view.getY() + rect.height();
+                    int yPosition = 0;
+                    if (fistPage < currentPage) {
+                        checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
+                        yPosition = checkEndPosition - (int) view.getY() - rect.height();
+//                        Log.v("ahihi", "TH1 : " + checkEndPosition);
+                    } else if (fistPage > currentPage) {
+                        int pageCurrentHeight = (int) binding.pdfView.getPageSize(fistPage).getHeight();
+                        checkHeadPosition = getStartPagePosition(checkHeadPosition, fistPage);
+                        yPosition = pageCurrentHeight - ((int) view.getY() + rect.height() - checkHeadPosition);
+//                        Log.v("ahihi", "TH2 : " + checkHeadPosition);
+
+                    } else {
+                        checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
+                        yPosition = checkEndPosition - (int) view.getY() - rect.height();
+//                        Log.v("ahihi", "TH3 : " + checkEndPosition);
+                    }
+
+
+                    Log.v("ahihi", "pos => " + yPosition);
+                    mViewModel.setPositionSign(view.getX() / pageWidth, (double) yPosition / (double) pageHeight,
+                            (view.getX() + rect.width()) / pageWidth, (double) (yPosition + rect.height()) / (double) pageHeight, fistPage);
+                }
+
+
+            }
+        });
+        onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
+        binding.imgSign.setOnTouchListener(onDragTouchListener);
+    }
+
+    private int getStartPagePosition(int checkHeadPosition, int page) {
+        while (true) {
+            int checkStartPage = pageFromView(checkHeadPosition);
+            Log.v("ahihi", "checkStartPage : " + checkStartPage);
+            if (checkStartPage != page) {
+                break;
+            }
+            checkHeadPosition--;
+        }
+
+        return checkHeadPosition;
+    }
+
+    private int getEndPagePosition(int checkEndPosition, int page) {
+        while (true) {
+            int checkEndPage = pageFromView(checkEndPosition);
+            Log.v("ahihi", "checkEndPage : " + checkEndPage);
+            if (checkEndPage != page) {
+                break;
+            }
+            checkEndPosition++;
+        }
+
+        return checkEndPosition;
+    }
+
+    private void moveImageToRoot() {
+        binding.imgSign.animate()
+                .translationY(0)
+                .translationX(0).setDuration(300)
+                .start();
     }
 
     @Override
@@ -125,39 +217,47 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         }
     }
 
+    private boolean isLoaded = false;
+
     private void loadFilePdf(File file) {
         binding.pdfView.fromFile(file)
-                .autoSpacing(true)
-                .spacing(10)
-                .defaultPage(0)
-                .pageFitPolicy(FitPolicy.BOTH)
-                .fitEachPage(true)
-                .onPageChange((page, pageCount) -> {
-                    binding.imgSign.animate().translationX(0).translationY(0).setDuration(300).start();
-                    final OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.pdfView, new OnDragTouchListener.OnDragActionListener() {
-                        @Override
-                        public void onDragStart(View view) {
-
-                        }
-
-                        @Override
-                        public void onDragEnd(View view, boolean isClickDetected) {
-                            Log.v("ahuhu", "coordinate : " + view.getX() + "  " + view.getY());
-                            Rect rect = new Rect();
-                            view.getHitRect(rect);
-                            int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
-                            int pageWidth = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getWidth();
-                            mViewModel.setPositionSign(view.getX() / pageWidth, (pageHeight - view.getY() - rect.height()) / pageHeight,
-                                    (view.getX() + rect.width()) / pageWidth, (pageHeight - view.getY()) / pageHeight);
-                        }
-                    });
-                    onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
-                    binding.imgSign.setOnTouchListener(onDragTouchListener);
-                })
-                .pageFling(true)
+                .spacing(2)
+//                .onPageChange(new OnPageChangeListener() {
+//                    @Override
+//                    public void onPageChanged(int page, int pageCount) {
+//                        if (isLoaded) {
+//                            binding.pdfView.jumpTo(page, true);
+//                        }
+//                    }
+//                })
+////                .defaultPage(0)
+////                .pageFitPolicy(FitPolicy.BOTH)
+////                .fitEachPage(true)
+                .swipeHorizontal(false)
                 .load();
 
         binding.pdfView.setBackgroundColor(Color.LTGRAY);
+    }
+
+    public int pageFromView(float y) {
+        float offsetY = binding.pdfView.getCurrentYOffset();
+        float zoom = binding.pdfView.getZoom();
+
+
+        float zoomY = (y - offsetY) / zoom;
+        float spacing = binding.pdfView.getSpacingPx();
+
+        int page = 0;
+        for (int i = 0; i < binding.pdfView.getPageCount(); i++) {
+
+            if (zoomY < binding.pdfView.getPageSize(i).getHeight()) {
+                page = i;
+                break;
+            } else {
+                zoomY -= binding.pdfView.getPageSize(i).getHeight() + spacing;
+            }
+        }
+        return page;
     }
 
     @Override
@@ -166,7 +266,18 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
         binding.btnSign.setOnClickListener(view -> showPopChooseSignOption());
 
-        binding.btnDone.setOnClickListener(view -> mViewModel.signPdfFile(binding.pdfView.getCurrentPage()));
+        binding.btnDone.setOnClickListener(view -> {
+            Rect rect = new Rect();
+            binding.imgSign.getHitRect(rect);
+            int fistPage = pageFromView(binding.imgSign.getY());
+            int secondPage = pageFromView(binding.imgSign.getY() + rect.height());
+
+            if (fistPage != secondPage) {
+                Toast.makeText(getContext(), "Invalid Signature Position!", Toast.LENGTH_SHORT).show();
+            } else {
+                mViewModel.signPdfFile(binding.pdfView.getCurrentPage());
+            }
+        });
 
     }
 
