@@ -45,7 +45,6 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
     private PdfViewerViewModel mViewModel;
     private String pdfPath;
     public static final int REQUEST_SELECT_IMAGE_IN_ALBUM = 1996;
-
     @Override
     protected int getLayoutId() {
         return R.layout.pdf_viewer_fragment;
@@ -60,6 +59,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             changeImageScaleType(mode);
             mViewModel.setSignPath(path);
 
+            setDragListener(mode);
             RequestOptions requestOptions = new RequestOptions()
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true);
@@ -103,8 +103,11 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             loadFilePdf(new File(pdfPath));
         }
 
-//        binding.imgSign.animate().translationX(0).translationY(0).setDuration(300).start();
-        final OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.container, new OnDragTouchListener.OnDragActionListener() {
+
+    }
+
+    private void setDragListener(String mode){
+        OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.container, new OnDragTouchListener.OnDragActionListener() {
             @Override
             public void onDragStart(View view) {
 
@@ -156,7 +159,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
 
             }
-        });
+        },mode);
         onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
         binding.imgSign.setOnTouchListener(onDragTouchListener);
     }
@@ -348,6 +351,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                             RequestOptions requestOptions = new RequestOptions()
                                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                                     .skipMemoryCache(true);
+                            setDragListener(Define.SIGN_MODE.PHOTO);
                             String signPath = FileUtil.getPathFromUri(getContext(), uri);
                             if (TextUtils.isEmpty(signPath)) {
                                 Toast.makeText(getContext(), "Có lỗi xảy ra.Vui lòng thử lại!", Toast.LENGTH_SHORT).show();

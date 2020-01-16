@@ -4,7 +4,11 @@ import android.graphics.Rect;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 
+import com.beetech.card_detect.BaseApplication;
+import com.beetech.card_detect.utils.Define;
+import com.beetech.card_detect.utils.DeviceUtil;
 import com.github.barteksc.pdfviewer.PDFView;
 
 
@@ -66,16 +70,18 @@ public class OnDragTouchListener implements View.OnTouchListener {
     private OnGestureControl mOnGestureControl;
     private boolean mIsTextPinchZoomable = true;
     private boolean isBiggerScale = true;
+    private String mode;
 
     public interface OnGestureControl {
         void onDoubleTab(boolean isBiggerScale);
     }
 
-    public OnDragTouchListener( View view, View parent, OnDragActionListener onDragActionListener) {
+    public OnDragTouchListener(View view, View parent, OnDragActionListener onDragActionListener, String mode) {
         initListener(view, parent);
         setOnDragActionListener(onDragActionListener);
         detector = new ScaleGestureDetector(new ScaleGestureListener());
         mGestureListener = new GestureDetector(new GestureListener());
+        this.mode = mode;
     }
 
     public void setOnDragActionListener(OnDragActionListener onDragActionListener) {
@@ -121,9 +127,9 @@ public class OnDragTouchListener implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        detector.onTouchEvent(v,event);
+        detector.onTouchEvent(v, event);
         mGestureListener.onTouchEvent(event);
-        if(isPreventDrag){
+        if (isPreventDrag) {
             return true;
         }
         if (isDragging) {
@@ -166,7 +172,11 @@ public class OnDragTouchListener implements View.OnTouchListener {
                     onDragFinish(isClickDetected);
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    mView.animate().x(bounds[0]).y(bounds[1]).setDuration(0).start();
+                    if (Define.SIGN_MODE.HANDWRITING.equals(mode)) {
+                        mView.animate().x(event.getRawX() + dX).y(event.getRawY() + dY).setDuration(0).start();
+                    } else {
+                        mView.animate().x(bounds[0]).y(bounds[1]).setDuration(0).start();
+                    }
                     break;
             }
             return true;
@@ -239,10 +249,10 @@ public class OnDragTouchListener implements View.OnTouchListener {
         @Override
         public boolean onScale(View view, ScaleGestureDetector detector) {
             TransformInfo info = new TransformInfo();
-            info.deltaScale =  detector.getScaleFactor();
-            info.deltaAngle =  Vector2D.getAngle(mPrevSpanVector, detector.getCurrentSpanVector()) ;
-            info.deltaX =  detector.getFocusX() - mPivotX;
-            info.deltaY =  detector.getFocusY() - mPivotY;
+            info.deltaScale = detector.getScaleFactor();
+            info.deltaAngle = Vector2D.getAngle(mPrevSpanVector, detector.getCurrentSpanVector());
+            info.deltaX = detector.getFocusX() - mPivotX;
+            info.deltaY = detector.getFocusY() - mPivotY;
             info.pivotX = mPivotX;
             info.pivotY = mPivotY;
             info.minimumScale = minimumScale;
