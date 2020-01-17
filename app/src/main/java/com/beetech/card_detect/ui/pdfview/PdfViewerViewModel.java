@@ -47,6 +47,8 @@ public class PdfViewerViewModel extends BaseViewModel {
 
     private MutableLiveData<ObjectResponse<ResponseBody>> signPdf = new MutableLiveData<>();
 
+    private MutableLiveData<ObjectResponse<String>> signPdfWithUrl = new MutableLiveData<>();
+
     public MutableLiveData<ObjectResponse<ResponseBody>> getSignPdf() {
         return signPdf;
     }
@@ -57,6 +59,10 @@ public class PdfViewerViewModel extends BaseViewModel {
 
     public MutableLiveData<ObjectResponse> getSaveFile() {
         return saveFile;
+    }
+
+    public MutableLiveData<ObjectResponse<String>> getSignPdfWithUrl() {
+        return signPdfWithUrl;
     }
 
     @Inject
@@ -122,17 +128,19 @@ public class PdfViewerViewModel extends BaseViewModel {
 
         String signLocation = this.xFirstPosition + "," + (this.yFirtstPosition) + "," + (this.xSecondPosition) + "," + this.ySecondPosition + "," + signPage;
         RequestBody signLocationBody = RequestBody.create(MediaType.parse("text/plain"), signLocation);
-        mDisposable.add(repository.signPdf(signLocationBody, pdfBody, signBody)
+        mDisposable.add(repository.signPdfWithUrl(signLocationBody, pdfBody, signBody)
                 .doOnSubscribe(disposable -> {
-                    signPdf.setValue(new ObjectResponse<ResponseBody>().loading());
+//                    signPdf.setValue(new ObjectResponse<ResponseBody>().loading());
+                    signPdfWithUrl.setValue(new ObjectResponse<String>().loading());
                 })
                 .subscribe(
                         body -> {
-                            signPdf.setValue(new ObjectResponse<ResponseBody>().success(body));
+//                            signPdf.setValue(new ObjectResponse<ResponseBody>().success(body));
+                            signPdfWithUrl.setValue(new ObjectResponse<String>().success(body.string()));
                         },
                         throwable -> {
-//                            Toast.makeText(BaseApplication.getContext(), "error " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                            signPdf.setValue(new ObjectResponse<ResponseBody>().error(throwable));
+//                            signPdf.setValue(new ObjectResponse<ResponseBody>().error(throwable));
+                            signPdfWithUrl.setValue(new ObjectResponse<String>().error(throwable));
                         }
                 ));
     }

@@ -27,11 +27,6 @@ import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
-import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
-import com.github.barteksc.pdfviewer.listener.OnRenderListener;
-import com.github.barteksc.pdfviewer.util.FitPolicy;
-import com.pdftron.pdf.config.ViewerConfig;
-import com.pdftron.pdf.controls.DocumentActivity;
 
 import java.io.File;
 import java.util.HashMap;
@@ -71,6 +66,12 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             binding.imgSign.setVisibility(View.VISIBLE);
             binding.btnDone.setVisibility(View.VISIBLE);
             bundle.remove("sign");
+            setArguments(null);
+        }
+
+        if(bundle!=null && bundle.containsKey("finish")){
+            getViewController().backFromAddFragment(null);
+            bundle.remove("finish");
             setArguments(null);
         }
     }
@@ -202,7 +203,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
     public void initData() {
         mViewModel.getFile().observe(getViewLifecycleOwner(), this::handleObjectResponse);
         mViewModel.getSaveFile().observe(getViewLifecycleOwner(), this::handleObjectResponse);
-        mViewModel.getSignPdf().observe(getViewLifecycleOwner(), this::handleObjectResponse);
+        mViewModel.getSignPdfWithUrl().observe(getViewLifecycleOwner(), this::handleObjectResponse);
     }
 
     @Override
@@ -211,28 +212,38 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 //            loadFilePdf((File) data);
 //            binding.btnDone.setVisibility(View.VISIBLE);
         } else if (data instanceof String) {
-            Toast.makeText(getContext(), "Lưu thành công !", Toast.LENGTH_SHORT).show();
-            getViewController().backFromAddFragment(null);
+            HashMap<String, String> bundle = new HashMap<>();
+            bundle.put("pdf_sign_file", (String) data);
+            getViewController().addFragment(SignedPdfViewerFragment.class,bundle);
         } else if (data instanceof ResponseBody) {
-            String path = FileUtil.saveFile((ResponseBody) data);
-            if (TextUtils.isEmpty(path)) {
-                Toast.makeText(getContext(), "Có lỗi xảy ra.Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-            } else {
-//                loadFilePdf(new File(path));
-//                binding.btnDone.setVisibility(View.GONE);
-                getViewController().backFromAddFragment(null);
-                HashMap<String, String> bundle = new HashMap<>();
-                bundle.put("pdf_sign_file", path);
-                ViewerConfig viewerConfig = new ViewerConfig.Builder().documentEditingEnabled(false)
-                        .autoHideToolbarEnabled(true)
-                        .multiTabEnabled(false)
-                        .useSupportActionBar(false)
-                        .showDocumentSettingsOption(false)
-                        .rightToLeftModeEnabled(true)
-                        .showTopToolbar(false)
-                        .build();
-                DocumentActivity.openDocument(getContext(), Uri.fromFile(new File(path)), viewerConfig);
-            }
+//            HashMap<String, String> bundle = new HashMap<>();
+//            try {
+//                bundle.put("pdf_sign_file",  ((ResponseBody) data).string());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            getViewController().replaceFragment(SignedPdfViewerFragment.class, bundle);
+
+
+//            String path = FileUtil.saveFile((ResponseBody) data);
+//            if (TextUtils.isEmpty(path)) {
+//                Toast.makeText(getContext(), "Có lỗi xảy ra.Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+//            } else {
+////                loadFilePdf(new File(path));
+////                binding.btnDone.setVisibility(View.GONE);
+//                getViewController().backFromAddFragment(null);
+//                HashMap<String, String> bundle = new HashMap<>();
+//                bundle.put("pdf_sign_file", path);
+//                ViewerConfig viewerConfig = new ViewerConfig.Builder().documentEditingEnabled(false)
+//                        .autoHideToolbarEnabled(true)
+//                        .multiTabEnabled(false)
+//                        .useSupportActionBar(false)
+//                        .showDocumentSettingsOption(false)
+//                        .rightToLeftModeEnabled(true)
+//                        .showTopToolbar(false)
+//                        .build();
+//                DocumentActivity.openDocument(getContext(), Uri.fromFile(new File(path)), viewerConfig);
+//            }
         }
     }
 

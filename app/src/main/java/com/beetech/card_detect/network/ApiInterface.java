@@ -26,4 +26,11 @@ public interface ApiInterface {
     Single<ResponseBody> signPdfFile(@Part("signed-location") RequestBody signedLocation,
                                      @Part MultipartBody.Part pdfFile,
                                      @Part MultipartBody.Part signFile);
+
+    @POST("android/sign-pdf")
+    @Headers({"x-api-key: f445a94491ea38548fc78b72f78a90ccc0726d44"})
+    @Multipart
+    Single<ResponseBody> signPdfFileWithUrl(@Part("signed-location") RequestBody signedLocation,
+                                     @Part MultipartBody.Part pdfFile,
+                                     @Part MultipartBody.Part signFile);
 }

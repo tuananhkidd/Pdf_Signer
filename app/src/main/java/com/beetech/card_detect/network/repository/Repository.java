@@ -43,4 +43,12 @@ public class Repository {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread());
     }
+
+    public Single<ResponseBody> signPdfWithUrl(RequestBody signLocation,
+                                        MultipartBody.Part pdfFile,
+                                        MultipartBody.Part signFile){
+        return apiInterface.signPdfFileWithUrl(signLocation,pdfFile,signFile)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
 }

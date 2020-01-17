@@ -25,11 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.pdftron.pdf.controls.DocumentActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
-            android:theme="@style/CustomAppTheme"
-            android:windowSoftInputMode="adjustPan" />
+<!--        <activity-->
+<!--            android:name="com.pdftron.pdf.controls.DocumentActivity"-->
+<!--            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"-->
+<!--            android:theme="@style/CustomAppTheme"-->
+<!--            android:windowSoftInputMode="adjustPan" />-->
     </application>
 
 </manifest>

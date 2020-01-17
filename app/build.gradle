@@ -27,8 +27,8 @@ android {
             //signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField 'String', 'BASE_URL', '"http://27.72.30.41:2020/toriaina/api/v1.0/"'
-            buildConfigField("String", "API_KEY", "\"ABCXYZ123TEST\"")
+            buildConfigField 'String', 'BASE_URL', '"http://27.72.30.41:2021/toriaina/api/v1.0/"'
+            buildConfigField("String", "API_KEY", "\"f445a94491ea38548fc78b72f78a90ccc0726d44\"")
         }
         stage {
             //signingConfig signingConfigs.debug
@@ -101,8 +101,8 @@ dependencies {
     //pdf view
 //    implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
     implementation 'com.github.barteksc:android-pdf-viewer:3.2.0-beta.1'
-    implementation "com.pdftron:pdftron:7.0.3"
-    implementation "com.pdftron:tools:7.0.3"
+//    implementation "com.pdftron:pdftron:7.0.3"
+//    implementation "com.pdftron:tools:7.0.3"
 
 //    implementation 'com.tom_roush:pdfbox-android:1.8.10.1'
     implementation 'com.nbsp:library:1.8'
