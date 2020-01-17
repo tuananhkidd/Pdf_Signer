@@ -45,6 +45,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
     private PdfViewerViewModel mViewModel;
     private String pdfPath;
     public static final int REQUEST_SELECT_IMAGE_IN_ALBUM = 1996;
+
     @Override
     protected int getLayoutId() {
         return R.layout.pdf_viewer_fragment;
@@ -74,18 +75,19 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         }
     }
 
-    private void changeImageScaleType(String mode){
+    private void changeImageScaleType(String mode) {
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.imgSign.getLayoutParams();
-        if(Define.SIGN_MODE.HANDWRITING.equals(mode)){
-            layoutParams.width = DeviceUtil.widthScreenPixel(getContext())/2;
-            layoutParams.height = DeviceUtil.convertDpToPx(getContext(),50);
-        }else {
-            layoutParams.width = DeviceUtil.convertDpToPx(getContext(),100);
-            layoutParams.height = DeviceUtil.convertDpToPx(getContext(),100);
+        if (Define.SIGN_MODE.HANDWRITING.equals(mode)) {
+            layoutParams.width = DeviceUtil.widthScreenPixel(getContext()) / 2;
+            layoutParams.height = DeviceUtil.convertDpToPx(getContext(), 50);
+        } else {
+            layoutParams.width = DeviceUtil.convertDpToPx(getContext(), 100);
+            layoutParams.height = DeviceUtil.convertDpToPx(getContext(), 100);
         }
         binding.imgSign.setLayoutParams(layoutParams);
 
     }
+
     @Override
     public boolean backPressed() {
         getViewController().backFromAddFragment(null);
@@ -106,7 +108,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
     }
 
-    private void setDragListener(String mode){
+    private void setDragListener(String mode) {
         OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.container, new OnDragTouchListener.OnDragActionListener() {
             @Override
             public void onDragStart(View view) {
@@ -115,53 +117,52 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
             @Override
             public void onDragEnd(View view, boolean isClickDetected) {
-                Rect rect = new Rect();
-                view.getHitRect(rect);
+                getPositionSignature(view);
+            }
+        }, mode);
+        onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
+        binding.imgSign.setOnTouchListener(onDragTouchListener);
+    }
 
-                //check position beetween two page
-
-                int fistPage = pageFromView(view.getY());
-                int secondPage = pageFromView(view.getY() + rect.height());
-                int currentPage = binding.pdfView.getCurrentPage();
-                int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
-                int pageWidth = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getWidth();
+    private void getPositionSignature(View view) {
+        Rect rect = new Rect();
+        view.getHitRect(rect);
+        int fistPage = pageFromView(view.getY());
+        int secondPage = pageFromView(view.getY() + rect.height());
+        int currentPage = binding.pdfView.getCurrentPage();
+        int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
+        int pageWidth = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getWidth();
 
 //                Log.v("ahuhu", "page : " + binding.pdfView.getCurrentPage() + " , 1: " + fistPage + " , 2:" + secondPage + "  ,mid:" + middlePage);
 //                Log.v("ahuhu", "coordinate : " + view.getY() + "  " + rect.height() + "   " + (view.getY() + rect.height() / 2));
-                if (fistPage != secondPage) {
-                    binding.pdfView.jumpTo(currentPage, true);
-                    moveImageToRoot();
-                } else {
-                    int checkHeadPosition = (int) view.getY();
-                    int checkEndPosition = (int) view.getY() + rect.height();
-                    int yPosition = 0;
-                    if (fistPage < currentPage) {
-                        checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
-                        yPosition = checkEndPosition - (int) view.getY() - rect.height();
+        if (fistPage != secondPage) {
+            binding.pdfView.jumpTo(currentPage, true);
+            moveImageToRoot();
+        } else {
+            int checkHeadPosition = (int) view.getY();
+            int checkEndPosition = (int) view.getY() + rect.height();
+            int yPosition = 0;
+            if (fistPage < currentPage) {
+                checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
+                yPosition = checkEndPosition - (int) view.getY() - rect.height();
 //                        Log.v("ahihi", "TH1 : " + checkEndPosition);
-                    } else if (fistPage > currentPage) {
-                        int pageCurrentHeight = (int) binding.pdfView.getPageSize(fistPage).getHeight();
-                        checkHeadPosition = getStartPagePosition(checkHeadPosition, fistPage);
-                        yPosition = pageCurrentHeight - ((int) view.getY() + rect.height() - checkHeadPosition);
+            } else if (fistPage > currentPage) {
+                int pageCurrentHeight = (int) binding.pdfView.getPageSize(fistPage).getHeight();
+                checkHeadPosition = getStartPagePosition(checkHeadPosition, fistPage);
+                yPosition = pageCurrentHeight - ((int) view.getY() + rect.height() - checkHeadPosition);
 //                        Log.v("ahihi", "TH2 : " + checkHeadPosition);
 
-                    } else {
-                        checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
-                        yPosition = checkEndPosition - (int) view.getY() - rect.height();
+            } else {
+                checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
+                yPosition = checkEndPosition - (int) view.getY() - rect.height();
 //                        Log.v("ahihi", "TH3 : " + checkEndPosition);
-                    }
-
-
-                    Log.v("ahihi", "pos => " + yPosition);
-                    mViewModel.setPositionSign(view.getX() / pageWidth, (double) yPosition / (double) pageHeight,
-                            (view.getX() + rect.width()) / pageWidth, (double) (yPosition + rect.height()) / (double) pageHeight, fistPage);
-                }
-
-
             }
-        },mode);
-        onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
-        binding.imgSign.setOnTouchListener(onDragTouchListener);
+
+
+            Log.v("ahihi", "pos => " + yPosition);
+            mViewModel.setPositionSign(view.getX() / pageWidth, (double) yPosition / (double) pageHeight,
+                    (view.getX() + rect.width()) / pageWidth, (double) (yPosition + rect.height()) / (double) pageHeight, fistPage);
+        }
     }
 
     private int getStartPagePosition(int checkHeadPosition, int page) {
@@ -293,6 +294,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             if (fistPage != secondPage) {
                 Toast.makeText(getContext(), "Invalid Signature Position!", Toast.LENGTH_SHORT).show();
             } else {
+                getPositionSignature(binding.imgSign);
                 mViewModel.signPdfFile(binding.pdfView.getCurrentPage());
             }
         });
