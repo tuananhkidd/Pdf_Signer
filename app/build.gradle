@@ -101,6 +101,7 @@ dependencies {
     //pdf view
 //    implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
     implementation 'com.github.barteksc:android-pdf-viewer:3.2.0-beta.1'
+    compile 'com.github.barteksc:pdfium-android:1.9.0'
 //    implementation "com.pdftron:pdftron:7.0.3"
 //    implementation "com.pdftron:tools:7.0.3"
 

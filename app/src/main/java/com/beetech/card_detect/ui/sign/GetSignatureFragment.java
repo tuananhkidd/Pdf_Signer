@@ -1,6 +1,7 @@
 package com.beetech.card_detect.ui.sign;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,6 +9,7 @@ import android.graphics.RectF;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 
 import androidx.lifecycle.ViewModelProviders;
@@ -88,10 +90,12 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
         binding.saveButton.setOnClickListener(v -> {
             Bitmap signatureBitmap;
             if (Define.SIGN_MODE.DRAW.equals(signMode)) {
-                signatureBitmap = binding.signaturePad.getTransparentSignatureBitmap();
+                int height = DeviceUtil.convertDpToPx(getContext(), 200);
+                signatureBitmap = Bitmap.createScaledBitmap( binding.signaturePad.getTransparentSignatureBitmap(),height,height,true);
+                Log.v("ahuhu","test");
             } else {
                 int screenWidth = DeviceUtil.widthScreenPixel(getContext());
-                signatureBitmap = Bitmap.createBitmap(screenWidth, 200, Bitmap.Config.ARGB_8888);
+                signatureBitmap = Bitmap.createBitmap(screenWidth / 2, 100, Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(signatureBitmap);
                 Paint paint = new Paint();
                 paint.setColor(Color.TRANSPARENT);
@@ -104,7 +108,7 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
                 float textHeight = paint.descent() - paint.ascent();
                 float textOffset = (textHeight / 2) - paint.descent();
 
-                RectF bounds = new RectF(0, 0, screenWidth, 200);
+                RectF bounds = new RectF(0, 0, screenWidth / 2, 100);
                 canvas.drawText(binding.edtSign.getText().toString(), bounds.centerX(), bounds.centerY() + textOffset, paint);
                 canvas.setBitmap(signatureBitmap);
             }

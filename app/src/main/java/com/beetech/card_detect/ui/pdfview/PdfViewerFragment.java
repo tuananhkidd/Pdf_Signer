@@ -3,12 +3,15 @@ package com.beetech.card_detect.ui.pdfview;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -27,8 +30,12 @@ import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.shockwave.pdfium.PdfDocument;
+import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 
 import okhttp3.ResponseBody;
@@ -69,7 +76,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             setArguments(null);
         }
 
-        if(bundle!=null && bundle.containsKey("finish")){
+        if (bundle != null && bundle.containsKey("finish")) {
             getViewController().backFromAddFragment(null);
             bundle.remove("finish");
             setArguments(null);
@@ -79,14 +86,18 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
     private void changeImageScaleType(String mode) {
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.imgSign.getLayoutParams();
         if (Define.SIGN_MODE.HANDWRITING.equals(mode)) {
+            binding.imgSign.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             layoutParams.width = DeviceUtil.widthScreenPixel(getContext()) / 2;
             layoutParams.height = DeviceUtil.convertDpToPx(getContext(), 50);
         } else {
+            binding.imgSign.setScaleType(ImageView.ScaleType.CENTER_CROP);
             layoutParams.width = DeviceUtil.convertDpToPx(getContext(), 100);
             layoutParams.height = DeviceUtil.convertDpToPx(getContext(), 100);
         }
+        if (Define.SIGN_MODE.DRAW.equals(mode)) {
+            binding.imgSign.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        }
         binding.imgSign.setLayoutParams(layoutParams);
-
     }
 
     @Override
@@ -155,14 +166,16 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
             } else {
                 checkEndPosition = getEndPagePosition(checkEndPosition, fistPage);
+                checkHeadPosition = getEndPagePosition(checkHeadPosition, fistPage);
                 yPosition = checkEndPosition - (int) view.getY() - rect.height();
-//                        Log.v("ahihi", "TH3 : " + checkEndPosition);
+                Log.v("ahihi", "TH3 : " + checkHeadPosition);
             }
 
 
             Log.v("ahihi", "pos => " + yPosition);
-            mViewModel.setPositionSign(view.getX() / pageWidth, (double) yPosition / (double) pageHeight,
-                    (view.getX() + rect.width()) / pageWidth, (double) (yPosition + rect.height()) / (double) pageHeight, fistPage);
+            float xDelta = (view.getX() + binding.pdfView.getCurrentXOffset());
+            mViewModel.setPositionSign(xDelta / pageWidth, (double) yPosition / (double) pageHeight,
+                    (xDelta + rect.width()) / pageWidth, (double) (yPosition + rect.height()) / (double) pageHeight, fistPage);
         }
     }
 
@@ -214,7 +227,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         } else if (data instanceof String) {
             HashMap<String, String> bundle = new HashMap<>();
             bundle.put("pdf_sign_file", (String) data);
-            getViewController().addFragment(SignedPdfViewerFragment.class,bundle);
+            getViewController().addFragment(SignedPdfViewerFragment.class, bundle);
         } else if (data instanceof ResponseBody) {
 //            HashMap<String, String> bundle = new HashMap<>();
 //            try {
@@ -247,29 +260,17 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         }
     }
 
-    private boolean isLoaded = false;
-
     private void loadFilePdf(File file) {
         binding.pdfView.fromFile(file)
                 .spacing(2)
-//                .onPageChange(new OnPageChangeListener() {
-//                    @Override
-//                    public void onPageChanged(int page, int pageCount) {
-//                        if (isLoaded) {
-//                            binding.pdfView.jumpTo(page, true);
-//                        }
-//                    }
-//                })
-////                .defaultPage(0)
-////                .pageFitPolicy(FitPolicy.BOTH)
-////                .fitEachPage(true)
                 .swipeHorizontal(false)
                 .load();
 
         binding.pdfView.setBackgroundColor(Color.LTGRAY);
+        binding.pdfView.setMaxZoom(2.0f);
     }
 
-    public int pageFromView(float y) {
+    private int pageFromView(float y) {
         float offsetY = binding.pdfView.getCurrentYOffset();
         float zoom = binding.pdfView.getZoom();
 
@@ -290,13 +291,63 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         return page;
     }
 
+    public PointF convertDocToView(float x, float y, int page) throws IOException {
+        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(new File(pdfPath), ParcelFileDescriptor.MODE_READ_ONLY);
+        PdfiumCore core = new PdfiumCore(getActivity());
+        PdfDocument doc = core.newDocument(pfd);
+        int viewPage = binding.pdfView.getCurrentPage();
+        float zoom = binding.pdfView.getZoom();
+
+        float viewWidth = binding.pdfView.getPageSize(page).getWidth();
+        float viewHeight = binding.pdfView.getPageSize(page).getHeight();
+
+        if (page > viewPage) {
+            for (int i = viewPage; i < page; i++) {
+                core.openPage(doc, i);
+                float spacing = binding.pdfView.getSpacingPx() / viewHeight * core.getPageHeightPoint(doc, i);
+                y += core.getPageHeightPoint(doc, i) + spacing;
+            }
+        } else if (page < viewPage) {
+            for (int i = viewPage; i > page; i--) {
+                core.openPage(doc, i);
+                float spacing = binding.pdfView.getSpacingPx() / viewHeight * core.getPageHeightPoint(doc, i);
+                y -= core.getPageHeightPoint(doc, i) + spacing;
+            }
+        }
+
+        core.openPage(doc, page);
+        float pageWidth = core.getPageWidthPoint(doc, page);
+        float pageHeight = core.getPageHeightPoint(doc, page);
+
+        float midX = x * viewWidth / pageWidth;
+        float midY = y * viewHeight / pageHeight;
+
+        float resultX = midX * zoom;
+        float resultY = midY * zoom;
+
+        return new PointF(resultX, resultY);
+    }
+
     @Override
     public void initListener() {
-        binding.btnBack.setOnClickListener(view -> getViewController().backFromAddFragment(null));
+        binding.btnBack.setOnClickListener(view -> {
+            if (avoidDuplicateClick()) {
+                return;
+            }
+            getViewController().backFromAddFragment(null);
+        });
 
-        binding.btnSign.setOnClickListener(view -> showPopChooseSignOption());
+        binding.btnSign.setOnClickListener(view -> {
+            if (avoidDuplicateClick()) {
+                return;
+            }
+            showPopChooseSignOption();
+        });
 
         binding.btnDone.setOnClickListener(view -> {
+            if (avoidDuplicateClick()) {
+                return;
+            }
             Rect rect = new Rect();
             binding.imgSign.getHitRect(rect);
             int fistPage = pageFromView(binding.imgSign.getY());

@@ -52,7 +52,7 @@ public class SignedPdfViewerFragment extends BaseFragment<SignedPdfViewerFragmen
 //            try {
             String filePath = bundle.getString("pdf_sign_file");
             binding.pdfView.getSettings().setJavaScriptEnabled(true);
-//            binding.pdfView.getSettings().setBuiltInZoomControls(true);
+            binding.pdfView.getSettings().setBuiltInZoomControls(true);
             binding.pdfView.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageStarted(WebView view, String url, Bitmap favicon) {
