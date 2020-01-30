@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -30,6 +31,9 @@ import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
+import com.github.barteksc.pdfviewer.listener.OnRenderListener;
+import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
 
@@ -120,6 +124,23 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
     }
 
+    private boolean validatePositionSignature(View view) {
+        Rect rect = new Rect();
+        view.getHitRect(rect);
+
+        float yPosition = binding.pdfView.getCurrentYOffset();
+
+        if (view.getY() < yPosition) {
+            return false;
+        }
+
+        if (yPosition > 0 && (view.getY() + rect.height()) >
+                yPosition + binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight() * binding.pdfView.getZoom()) {
+            return false;
+        }
+        return true;
+    }
+
     private void setDragListener(String mode) {
         OnDragTouchListener onDragTouchListener = new OnDragTouchListener(binding.imgSign, binding.container, new OnDragTouchListener.OnDragActionListener() {
             @Override
@@ -129,11 +150,30 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
             @Override
             public void onDragEnd(View view, boolean isClickDetected) {
-                getPositionSignature(view);
+                if (!validatePositionSignature(view)) {
+                    moveImageToRoot();
+                } else {
+                    getPositionSignatureV2(view);
+                }
             }
         }, mode);
         onDragTouchListener.setOnGestureControl(isBiggerScale -> onDragTouchListener.scaleView(isBiggerScale));
         binding.imgSign.setOnTouchListener(onDragTouchListener);
+    }
+
+    private void getPositionSignatureV2(View view) {
+        Rect rect = new Rect();
+        view.getHitRect(rect);
+        int pageHeight = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getHeight();
+        int pageWidth = (int) binding.pdfView.getPageSize(binding.pdfView.getCurrentPage()).getWidth();
+        int currentPage = binding.pdfView.getCurrentPage();
+
+        float xPos = view.getX() - binding.pdfView.getCurrentXOffset();
+        float yPos = pageHeight * binding.pdfView.getZoom() - (view.getY() - binding.pdfView.getCurrentYOffset() + rect.height());
+
+        xPos = (xPos / binding.pdfView.getZoom()) - 2;
+        mViewModel.setPositionSign(xPos / pageWidth, (double) yPos / (double) (pageHeight * binding.pdfView.getZoom()),
+                (xPos + rect.width() / binding.pdfView.getZoom()) / pageWidth, (double) (yPos + rect.height()) / (double) (pageHeight * binding.pdfView.getZoom()), currentPage);
     }
 
     private void getPositionSignature(View view) {
@@ -262,8 +302,9 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
 
     private void loadFilePdf(File file) {
         binding.pdfView.fromFile(file)
-                .spacing(2)
-                .swipeHorizontal(false)
+                .swipeHorizontal(true)
+                .pageFling(true)
+                .pageSnap(true)
                 .load();
 
         binding.pdfView.setBackgroundColor(Color.LTGRAY);
@@ -348,15 +389,15 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
             if (avoidDuplicateClick()) {
                 return;
             }
-            Rect rect = new Rect();
-            binding.imgSign.getHitRect(rect);
-            int fistPage = pageFromView(binding.imgSign.getY());
-            int secondPage = pageFromView(binding.imgSign.getY() + rect.height());
+//            Rect rect = new Rect();
+//            binding.imgSign.getHitRect(rect);
+//            int fistPage = pageFromView(binding.imgSign.getY());
+//            int secondPage = pageFromView(binding.imgSign.getY() + rect.height());
 
-            if (fistPage != secondPage) {
+            if (!validatePositionSignature(binding.imgSign)) {
                 Toast.makeText(getContext(), "Invalid Signature Position!", Toast.LENGTH_SHORT).show();
             } else {
-                getPositionSignature(binding.imgSign);
+                getPositionSignatureV2(binding.imgSign);
                 mViewModel.signPdfFile(binding.pdfView.getCurrentPage());
             }
         });

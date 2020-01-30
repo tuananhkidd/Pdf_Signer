@@ -61,12 +61,13 @@
 
 
             <ImageView
-                android:background="@drawable/bg_sign_layout"
                 android:id="@+id/img_sign"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:scaleType="centerCrop"
+                android:layout_centerVertical="true"
                 android:adjustViewBounds="true"
+                android:background="@drawable/bg_sign_layout"
+                android:scaleType="centerCrop"
                 android:visibility="gone"
                 tools:src="@color/colorAccent" />
         </RelativeLayout>
