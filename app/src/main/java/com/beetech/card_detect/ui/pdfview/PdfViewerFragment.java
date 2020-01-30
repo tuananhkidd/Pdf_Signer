@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -31,14 +30,10 @@ import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
-import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
-import com.github.barteksc.pdfviewer.listener.OnRenderListener;
-import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -63,7 +58,9 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         if (bundle != null && bundle.containsKey("sign")) {
             String path = bundle.getString("sign");
             String mode = bundle.getString("mode");
-            changeImageScaleType(mode);
+            int width = bundle.getInt("width");
+            int height = bundle.getInt("height");
+            changeImageScaleType(mode,width,height);
             mViewModel.setSignPath(path);
 
             setDragListener(mode);
@@ -87,17 +84,16 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         }
     }
 
-    private void changeImageScaleType(String mode) {
+    private void changeImageScaleType(String mode,int width,int height) {
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.imgSign.getLayoutParams();
         if (Define.SIGN_MODE.HANDWRITING.equals(mode)) {
             binding.imgSign.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             layoutParams.width = DeviceUtil.widthScreenPixel(getContext()) / 2;
-            layoutParams.height = DeviceUtil.convertDpToPx(getContext(), 50);
         } else {
             binding.imgSign.setScaleType(ImageView.ScaleType.CENTER_CROP);
             layoutParams.width = DeviceUtil.convertDpToPx(getContext(), 100);
-            layoutParams.height = DeviceUtil.convertDpToPx(getContext(), 100);
         }
+        layoutParams.height = layoutParams.width * height / width;
         if (Define.SIGN_MODE.DRAW.equals(mode)) {
             binding.imgSign.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
@@ -332,42 +328,42 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
         return page;
     }
 
-    public PointF convertDocToView(float x, float y, int page) throws IOException {
-        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(new File(pdfPath), ParcelFileDescriptor.MODE_READ_ONLY);
-        PdfiumCore core = new PdfiumCore(getActivity());
-        PdfDocument doc = core.newDocument(pfd);
-        int viewPage = binding.pdfView.getCurrentPage();
-        float zoom = binding.pdfView.getZoom();
-
-        float viewWidth = binding.pdfView.getPageSize(page).getWidth();
-        float viewHeight = binding.pdfView.getPageSize(page).getHeight();
-
-        if (page > viewPage) {
-            for (int i = viewPage; i < page; i++) {
-                core.openPage(doc, i);
-                float spacing = binding.pdfView.getSpacingPx() / viewHeight * core.getPageHeightPoint(doc, i);
-                y += core.getPageHeightPoint(doc, i) + spacing;
-            }
-        } else if (page < viewPage) {
-            for (int i = viewPage; i > page; i--) {
-                core.openPage(doc, i);
-                float spacing = binding.pdfView.getSpacingPx() / viewHeight * core.getPageHeightPoint(doc, i);
-                y -= core.getPageHeightPoint(doc, i) + spacing;
-            }
-        }
-
-        core.openPage(doc, page);
-        float pageWidth = core.getPageWidthPoint(doc, page);
-        float pageHeight = core.getPageHeightPoint(doc, page);
-
-        float midX = x * viewWidth / pageWidth;
-        float midY = y * viewHeight / pageHeight;
-
-        float resultX = midX * zoom;
-        float resultY = midY * zoom;
-
-        return new PointF(resultX, resultY);
-    }
+//    public PointF convertDocToView(float x, float y, int page) throws IOException {
+//        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(new File(pdfPath), ParcelFileDescriptor.MODE_READ_ONLY);
+//        PdfiumCore core = new PdfiumCore(getActivity());
+//        PdfDocument doc = core.newDocument(pfd);
+//        int viewPage = binding.pdfView.getCurrentPage();
+//        float zoom = binding.pdfView.getZoom();
+//
+//        float viewWidth = binding.pdfView.getPageSize(page).getWidth();
+//        float viewHeight = binding.pdfView.getPageSize(page).getHeight();
+//
+//        if (page > viewPage) {
+//            for (int i = viewPage; i < page; i++) {
+//                core.openPage(doc, i);
+//                float spacing = binding.pdfView.getSpacingPx() / viewHeight * core.getPageHeightPoint(doc, i);
+//                y += core.getPageHeightPoint(doc, i) + spacing;
+//            }
+//        } else if (page < viewPage) {
+//            for (int i = viewPage; i > page; i--) {
+//                core.openPage(doc, i);
+//                float spacing = binding.pdfView.getSpacingPx() / viewHeight * core.getPageHeightPoint(doc, i);
+//                y -= core.getPageHeightPoint(doc, i) + spacing;
+//            }
+//        }
+//
+//        core.openPage(doc, page);
+//        float pageWidth = core.getPageWidthPoint(doc, page);
+//        float pageHeight = core.getPageHeightPoint(doc, page);
+//
+//        float midX = x * viewWidth / pageWidth;
+//        float midY = y * viewHeight / pageHeight;
+//
+//        float resultX = midX * zoom;
+//        float resultY = midY * zoom;
+//
+//        return new PointF(resultX, resultY);
+//    }
 
     @Override
     public void initListener() {
@@ -452,7 +448,7 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                     Uri uri = data.getData();
                     try {
                         if (getActivity() != null) {
-                            changeImageScaleType(Define.SIGN_MODE.PHOTO);
+                            changeImageScaleType(Define.SIGN_MODE.PHOTO,1,1);
                             RequestOptions requestOptions = new RequestOptions()
                                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                                     .skipMemoryCache(true);

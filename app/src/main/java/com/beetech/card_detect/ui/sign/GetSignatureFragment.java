@@ -90,8 +90,9 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
         binding.saveButton.setOnClickListener(v -> {
             Bitmap signatureBitmap;
             if (Define.SIGN_MODE.DRAW.equals(signMode)) {
-                int height = DeviceUtil.convertDpToPx(getContext(), 200);
-                signatureBitmap = Bitmap.createScaledBitmap( binding.signaturePad.getTransparentSignatureBitmap(),height,height,true);
+//                int height = DeviceUtil.convertDpToPx(getContext(), 200);
+//                signatureBitmap = Bitmap.createScaledBitmap( binding.signaturePad.getTransparentSignatureBitmap(),height,height,true);
+                signatureBitmap = binding.signaturePad.getTransparentSignatureBitmap();
                 Log.v("ahuhu","test");
             } else {
                 int screenWidth = DeviceUtil.widthScreenPixel(getContext());
@@ -113,9 +114,11 @@ public class GetSignatureFragment extends BaseFragment<GetSignatureFragmentBindi
                 canvas.setBitmap(signatureBitmap);
             }
             File signatureFile = FileUtil.saveSignature(getContext(), signatureBitmap);
-            HashMap<String, String> data = new HashMap<>();
+            HashMap<String, Object> data = new HashMap<>();
             data.put("sign", signatureFile.getAbsolutePath());
             data.put("mode", signMode);
+            data.put("width", signatureBitmap.getWidth());
+            data.put("height", signatureBitmap.getHeight());
             getViewController().backFromAddFragment(data);
         });
     }
