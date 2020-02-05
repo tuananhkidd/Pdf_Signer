@@ -18,6 +18,7 @@ import com.beetech.card_detect.base.BaseFragment;
 import com.beetech.card_detect.databinding.HomeFragmentBinding;
 import com.beetech.card_detect.ui.pdfview.PdfViewerFragment;
 import com.beetech.card_detect.ui.pdfview.v1.PdfViewerV1Fragment;
+import com.beetech.card_detect.ui.pdfview.v2.PdfViewerV2Fragment;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
@@ -113,7 +114,7 @@ public class HomeFragment extends BaseFragment<HomeFragmentBinding> {
                         Log.v("ahuhu", "pdf :" + filePath);
                         HashMap<String, String> bundle = new HashMap<>();
                         bundle.put("pdf", filePath);
-                        getViewController().addFragment(PdfViewerV1Fragment.class, bundle);
+                        getViewController().addFragment(PdfViewerV2Fragment.class, bundle);
                     }
 
                 }
