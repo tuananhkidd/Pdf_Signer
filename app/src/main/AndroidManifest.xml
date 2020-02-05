@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.main.MainActivity" android:screenOrientation="portrait">
+        <activity android:name=".ui.main.MainActivity" android:screenOrientation="sensor" android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

@@ -2,6 +2,7 @@ package com.beetech.card_detect.ui.pdfview;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -30,6 +31,7 @@ import com.beetech.card_detect.utils.FileUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.github.barteksc.pdfviewer.listener.OnDrawListener;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
 
@@ -301,6 +303,12 @@ public class PdfViewerFragment extends BaseFragment<PdfViewerFragmentBinding> {
                 .swipeHorizontal(true)
                 .pageFling(true)
                 .pageSnap(true)
+                .onDraw(new OnDrawListener() {
+                    @Override
+                    public void onLayerDrawn(Canvas canvas, float pageWidth, float pageHeight, int displayedPage) {
+
+                    }
+                })
                 .load();
 
         binding.pdfView.setBackgroundColor(Color.LTGRAY);

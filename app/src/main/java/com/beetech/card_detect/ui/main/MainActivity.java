@@ -20,12 +20,6 @@ import static com.beetech.card_detect.ui.home.HomeFragment.REQUEST_CODE_PICK_PDF
 public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
-
-    @Override
     public int getLayoutId() {
         return R.layout.activity_main;
     }
